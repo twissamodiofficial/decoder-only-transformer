@@ -1,0 +1,6 @@
+.venv
+__pycache__/
+mqa.egg-info/
+.DS_Store
+wikitext_bpe_tokenizer.json
+*.npy

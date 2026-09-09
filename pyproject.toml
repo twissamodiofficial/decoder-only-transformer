@@ -1,0 +1,19 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "mqa"
+version = "0.1.0"
+description = "MHA vs MQA comparison project"
+requires-python = ">=3.10"
+dependencies = [
+    "torch",
+    "numpy",
+    "transformers",
+    "datasets",
+    "tokenizers",
+]
+
+[tool.setuptools.packages.find]
+include = ["modules*"]

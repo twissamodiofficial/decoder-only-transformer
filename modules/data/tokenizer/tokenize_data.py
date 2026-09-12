@@ -5,32 +5,29 @@ from tokenizers import Tokenizer, normalizers, pre_tokenizers, Regex, decoders
 from tokenizers.models import BPE
 from tokenizers.trainers import BpeTrainer
 from tokenizers.processors import TemplateProcessing
+import modules.config as config
 
 class TokenizeData:
     def __init__(self):
         self.tokenizer = None
-        self.tokenizer_path = "modules/data/tokenizer/wikitext_bpe_tokenizer.json"
+        self.tokenizer_path = config.TOKENIZER_PATH
 
     def load_data(self, split="train"):
         data = load_dataset("Salesforce/wikitext", "wikitext-103-raw-v1")
         return data[split]
 
-    def train_wikitext_tokenizer(self, vocab_size=8000, save_path=None):
+    def train_wikitext_tokenizer(self, vocab_size=config.VOCAB_SIZE, save_path=None):
         if save_path is None:
             save_path = self.tokenizer_path
         
         self.tokenizer = Tokenizer(BPE(unk_token="[UNK]"))
-        print("Step 1: Downloading/Loading WikiText-103-raw dataset...")
         train_split = self.load_data()
 
-        print("Step 2: Preparing text generator stream...")
         def batch_iterator():
             for item in train_split:
                 # Skip empty lines to save processing overhead
                 if item["text"].strip():
                     yield item["text"]
-
-        print("Step 3: Initializing blank BPE container and Pre-Tokenizer...")
 
         self.tokenizer.normalizer = normalizers.Sequence(
             [normalizers.Replace(Regex(r"[\u201c\u201d]"), '"'),
@@ -42,8 +39,6 @@ class TokenizeData:
         self.tokenizer.pre_tokenizer = pre_tokenizers.Sequence(
             [pre_tokenizers.WhitespaceSplit(), pre_tokenizers.Punctuation()]
         ) # splits on whitespace and punctuation
-
-        print("Step 4: Configuring BPE Trainer...")
         special_tokens = ["[UNK]", "[PAD]", "[BOS]", "[EOS]"]
         
         trainer = BpeTrainer(
@@ -51,8 +46,6 @@ class TokenizeData:
             special_tokens=special_tokens,
             end_of_word_suffix="</w>",
         )
-
-        print(f"Step 5: Training BPE Tokenizer on WikiText-103 (Target Vocab: {vocab_size})...")
         self.tokenizer.train_from_iterator(batch_iterator(), trainer=trainer)
 
         processor = TemplateProcessing(
@@ -66,7 +59,6 @@ class TokenizeData:
 
         self.tokenizer.decoder = decoders.BPEDecoder(suffix="</w>")
 
-        print(f"Step 6: Saving trained tokenizer configuration to '{save_path}'...")
         self.tokenizer.save(save_path)
         print("Tokenizer training complete!")
         return self.tokenizer
@@ -75,13 +67,13 @@ class TokenizeData:
         if tokenizer_path is None:
             tokenizer_path = self.tokenizer_path
         if not os.path.exists(tokenizer_path):
-            raise FileNotFoundError(f"Tokenizer file '{tokenizer_path}' not found. Please train the tokenizer first.")
+            raise FileNotFoundError(f"Tokenizer file '{tokenizer_path}' not found.")
         self.tokenizer = Tokenizer.from_file(tokenizer_path)
         return self.tokenizer
 
     def encode_tokens(self, text):
         if not self.tokenizer:
-            raise ValueError("Tokenizer is not loaded. Please load the tokenizer first.")
+            raise ValueError("Tokenizer is not loaded.")
         return self.tokenizer.encode(text).ids
 
     def clean_decode(self, text):
@@ -89,7 +81,7 @@ class TokenizeData:
 
     def decode_tokens(self, token_ids):
         if not self.tokenizer:
-            raise ValueError("Tokenizer is not loaded. Please load the tokenizer first.")
+            raise ValueError("Tokenizer is not loaded.")
         decoded_text = self.tokenizer.decode(token_ids)
         return self.clean_decode(decoded_text)
 

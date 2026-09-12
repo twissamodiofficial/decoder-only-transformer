@@ -1,9 +1,10 @@
 import torch
 import torch.nn as nn
 from .rope_embedding import precompute_rope_angles, apply_rope
+import modules.config as config
 
 class CausalSelfAttentionWithKvCache(nn.Module):
-    def __init__(self, embed_dim, num_heads):
+    def __init__(self, embed_dim, num_heads, max_seq_len=config.MAX_SEQ_LEN):
         super().__init__()
         self.embed_dim = embed_dim
         assert embed_dim % num_heads == 0
@@ -15,8 +16,12 @@ class CausalSelfAttentionWithKvCache(nn.Module):
         self.linear_v = nn.Linear(embed_dim, embed_dim)
         self.linear_out = nn.Linear(embed_dim, embed_dim)
 
-        self.max_seq_len = 2048  # Set a maximum sequence length
-        self.rope_angles = precompute_rope_angles(self.max_seq_len, self.head_dim)
+        self.max_seq_len = max_seq_len
+        self.register_buffer(
+            "rope_angles",
+            precompute_rope_angles(self.max_seq_len, self.head_dim),
+            persistent=False,
+        )
 
     def split_heads(self, x, batch_size):
         x = x.view(batch_size, -1, self.num_heads, self.head_dim)

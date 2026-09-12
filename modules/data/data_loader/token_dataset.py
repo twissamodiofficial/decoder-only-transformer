@@ -8,7 +8,7 @@ class TokenDataset(Dataset):
         self.seq_len = seq_len
 
     def __len__(self):
-        return len(self.data) // self.seq_len
+        return (len(self.data) - 1) // self.seq_len
     
     def __getitem__(self, idx):
         start = idx * self.seq_len

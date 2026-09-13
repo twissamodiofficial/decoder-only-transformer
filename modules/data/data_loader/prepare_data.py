@@ -18,7 +18,11 @@ def tokenize_split(tokenizer, split_name):
 def prepare_data():
     if not os.path.exists(config.TRAIN_DATA_PATH) or not os.path.exists(config.VAL_DATA_PATH):
         data_tokenizer = TokenizeData()
-        data_tokenizer.load_tokenizer()
+
+        if os.path.exists(config.TOKENIZER_PATH):
+            data_tokenizer.load_tokenizer()
+        else:
+            data_tokenizer.train_wikitext_tokenizer()
 
         if not os.path.exists(config.TRAIN_DATA_PATH):
             train_ids = tokenize_split(data_tokenizer, 'train')

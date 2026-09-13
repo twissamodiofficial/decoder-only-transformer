@@ -32,12 +32,6 @@ def parse_args():
         default=None,
         help="Path to a checkpoint file to resume training from",
     )
-    parser.add_argument(
-        "--epochs",
-        type=int,
-        default=config.NUM_EPOCHS,
-        help="Total number of epochs to train for",
-    )
     return parser.parse_args()
 
 
@@ -62,19 +56,22 @@ if __name__ == "__main__":
     print(f"TransformerTrainer initialized with {args.attention} attention on {device}.")
 
     train_dataset = TokenDataset(config.TRAIN_DATA_PATH, config.SEQ_LEN)
-    train_dataloader = DataLoader(train_dataset, batch_size=config.BATCH_SIZE, shuffle=True)
+    train_dataloader = DataLoader(train_dataset, batch_size=config.BATCH_SIZE, shuffle=True, num_workers=4, pin_memory=True, persistent_workers=True)
 
     val_dataset = TokenDataset(config.VAL_DATA_PATH, config.SEQ_LEN)
-    val_dataloader = DataLoader(val_dataset, batch_size=config.BATCH_SIZE, shuffle=False)
+    val_dataloader = DataLoader(val_dataset, batch_size=config.BATCH_SIZE, shuffle=False, num_workers=2, pin_memory=True, persistent_workers=True)
 
     start_epoch = 0
+    wandb_run_id = None
     if args.resume is not None:
-        start_epoch, last_train_loss = trainer.resume_from_checkpoint(args.resume)
+        start_epoch, last_train_loss, wandb_run_id = trainer.resume_from_checkpoint(args.resume)
         start_epoch += 1
         print(f"Resumed from {args.resume}, continuing at epoch {start_epoch+1}, last train loss was {last_train_loss:.4f}")
 
     wandb.init(
         project="gpt-clone-experiments",
+        id=wandb_run_id,
+        resume="must" if wandb_run_id is not None else None,
         config={
             "attention": args.attention,
             "vocab_size": config.VOCAB_SIZE,
@@ -86,13 +83,13 @@ if __name__ == "__main__":
             "batch_size": config.BATCH_SIZE,
             "lr": config.LEARNING_RATE,
             "weight_decay": config.WEIGHT_DECAY,
-            "epochs": args.epochs,
+            "epochs": config.NUM_EPOCHS,
         },
     )
 
     trainer.train(
         train_dataloader,
-        epochs=args.epochs,
+        epochs=config.NUM_EPOCHS,
         save_every=config.SAVE_EVERY,
         val_dataloader=val_dataloader,
         start_epoch=start_epoch,

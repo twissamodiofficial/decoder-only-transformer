@@ -20,14 +20,17 @@ eval "$(conda shell.bash hook)"
 conda activate gpt-clone   # replace with your actual environment name if different
 
 # Run training
-LATEST_CKPT=$(ls -v modules/checkpoints/epoch_*.pt 2>/dev/null | tail -n 1)
+ATTENTION=${ATTENTION:-mha}
+CHECKPOINT_DIR="modules/checkpoints/$ATTENTION"
+LATEST_CKPT=$(ls -v "$CHECKPOINT_DIR"/epoch_*.pt 2>/dev/null | tail -n 1)
 
 if [ -n "$LATEST_CKPT" ]; then
-    echo "Resuming from $LATEST_CKPT"
-    python -u -m modules.training.training --attention mha --resume "$LATEST_CKPT"
+    python -u -m modules.training.training \
+        --attention "$ATTENTION" \
+        --resume "$LATEST_CKPT"
 else
-    echo "No checkpoint found, starting fresh"
-    python -u -m modules.training.training --attention mha
+    python -u -m modules.training.training \
+    --attention "$ATTENTION"
 fi
 
 echo "Job completed for modules.training.training"

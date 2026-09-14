@@ -83,8 +83,8 @@ class TransformerTrainer:
             milestones=[warmup_steps]
         )
 
-    def train(self, train_dataloader, epochs, save_every, val_dataloader=None, start_epoch=0):
-        os.makedirs(config.CHECKPOINT_DIR, exist_ok=True)
+    def train(self, train_dataloader, epochs, save_every, val_dataloader=None, start_epoch=0, checkpoint_dir=config.MHA_CHECKPOINT_DIR):
+        os.makedirs(checkpoint_dir, exist_ok=True)
         total_steps = len(train_dataloader) * epochs
 
         self.setup_lr_scheduler(total_steps)
@@ -116,11 +116,11 @@ class TransformerTrainer:
             wandb.log(log_dict)
 
             if (epoch + 1) % save_every == 0:
-                self.save_checkpoint(f"{config.CHECKPOINT_DIR}/epoch_{epoch+1}.pt", epoch, total_loss, best_val_loss=self.best_val_loss)
+                self.save_checkpoint(f"{checkpoint_dir}/epoch_{epoch+1}.pt", epoch, total_loss, best_val_loss=self.best_val_loss)
 
             if val_loss is not None and val_loss < self.best_val_loss:
                 self.best_val_loss = val_loss
-                self.save_checkpoint(f"{config.CHECKPOINT_DIR}/best.pt", epoch, total_loss, best_val_loss=val_loss)
+                self.save_checkpoint(f"{checkpoint_dir}/best.pt", epoch, total_loss, best_val_loss=val_loss)
 
     def validate(self, dataloader):
         self.model.eval()

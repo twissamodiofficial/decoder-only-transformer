@@ -5,6 +5,7 @@ import wandb
 
 from modules.attention.CausalSelfAttentionWithKvCache import CausalSelfAttentionWithKvCache
 from modules.attention.MultiQueryCausalAttention import MultiQueryCausalAttention
+from modules.attention.GroupedQueryAttention import GroupedQueryAttention
 from modules.training.train_transformer import TransformerTrainer
 from modules.data.data_loader.token_dataset import TokenDataset
 import modules.config as config
@@ -14,6 +15,7 @@ from modules.data.data_loader.prepare_data import prepare_data
 ATTENTION_MODULES = {
     "mha": CausalSelfAttentionWithKvCache,
     "mqa": MultiQueryCausalAttention,
+    "gqa": GroupedQueryAttention,
 }
 
 
@@ -87,10 +89,17 @@ if __name__ == "__main__":
         },
     )
 
+    CHECKPOINT_DIRS = {
+    "mha": config.MHA_CHECKPOINT_DIR,
+    "mqa": config.MQA_CHECKPOINT_DIR,
+    "gqa": config.GQA_CHECKPOINT_DIR,
+    }
+
     trainer.train(
         train_dataloader,
         epochs=config.NUM_EPOCHS,
         save_every=config.SAVE_EVERY,
         val_dataloader=val_dataloader,
         start_epoch=start_epoch,
+        checkpoint_dir=CHECKPOINT_DIRS[args.attention],
     )

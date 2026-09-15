@@ -13,24 +13,16 @@
 
 # Load modules
 module load anaconda/25.5.1
-# module load cuda/12.8.0   # not required - pip-installed PyTorch bundles its own CUDA runtime
+# module load cuda/12.8.0
 
 # Activate environment
 eval "$(conda shell.bash hook)"
-conda activate gpt-clone   # replace with your actual environment name if different
+conda activate gpt-clone
 
 # Run training
 ATTENTION=${ATTENTION:-mha}
 CHECKPOINT_DIR="modules/checkpoints/$ATTENTION"
-LATEST_CKPT=$(ls -v "$CHECKPOINT_DIR"/epoch_*.pt 2>/dev/null | tail -n 1)
 
-if [ -n "$LATEST_CKPT" ]; then
-    python -u -m modules.training.training \
-        --attention "$ATTENTION" \
-        --resume "$LATEST_CKPT"
-else
-    python -u -m modules.training.training \
-    --attention "$ATTENTION"
-fi
+python -u -m modules.training.training --attention "$ATTENTION"
 
 echo "Job completed for modules.training.training"

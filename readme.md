@@ -12,7 +12,7 @@ Trained on WikiText-103, tokenized with a custom BPE tokenizer (8000 vocab).
 - Trained on GPU Cluster, single NVIDIA A40
 - 20 epochs, AdamW with weight decay (excluding biases/norms), warmup +
   cosine LR schedule, gradient clipping
-- GQA uses `num_kv_heads=2` (3 query heads share each KV pair)
+- GQA uses `num_kv_heads=3` (2 query heads share each KV pair) tuned hyperparameter; 
 - MQA uses a single shared KV pair across all heads
 
 ## Results
@@ -22,7 +22,7 @@ Trained on WikiText-103, tokenized with a custom BPE tokenizer (8000 vocab).
 | Attention | Train loss | Val loss |
 |---|---|---|
 | MHA | ~2.30 | ~2.35 |
-| GQA | ~2.32 | ~2.39 |
+| GQA | ~2.31 | ~2.38 |
 | MQA | ~2.33 | ~2.40 |
 
 ### Test set (held-out, unbiased)
@@ -30,16 +30,20 @@ Trained on WikiText-103, tokenized with a custom BPE tokenizer (8000 vocab).
 | Attention | Test loss |
 |---|---|
 | MHA | 2.376 |
-| GQA | 2.394 |
+| GQA | 2.390 |
 | MQA | 2.409 |
 
 ### Inference benchmark (100 tokens, batch size 1, A40)
 
+![Inference speed and memory comparison](./docs/images/perf_comparison.png)
+
 | Attention | Tokens/sec | Peak memory (MB) |
 |---|---|---|
-| MHA | 55.5 | 69.6 |
-| GQA | 143.6 | 63.2 |
-| MQA | 150.2 | 61.0 |
+| MHA | 142.389 | 69.575 |
+| GQA | 194.533 | 65.023 |
+| MQA | 201.891 | 60.989 |
+
+Full training curves and test-set evaluation plots: [docs/results.md](./docs/results.md)
 
 ## Takeaway
 

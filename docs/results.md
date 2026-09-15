@@ -9,7 +9,7 @@ trained from scratch on WikiText-103.
 ![MHA training](./images/mha.png)
 
 ### GQA
-![GQA training](./images/gqa.png)
+![GQA training](./images/gqa-head3.png)
 
 ### MQA
 ![MQA training](./images/mqa.png)
@@ -24,7 +24,7 @@ test set.
 | Attention | Test loss |
 |---|---|
 | MHA | 2.376 |
-| GQA | 2.394 |
+| GQA | 2.390 |
 | MQA | 2.409 |
 
 ## Inference benchmark
@@ -35,9 +35,9 @@ test set.
 
 | Attention | Tokens/sec | Peak memory (MB) |
 |---|---|---|
-| MHA | 55.5 | 69.6 |
-| GQA | 143.6 | 63.2 |
-| MQA | 150.2 | 61.0 |
+| MHA | 142.389 | 69.575 |
+| GQA | 194.533 | 65.023 |
+| MQA | 201.891 | 60.989 |
 
 ## Takeaway
 

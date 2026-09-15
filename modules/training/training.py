@@ -26,19 +26,17 @@ def parse_args():
         type=str,
         choices=ATTENTION_MODULES.keys(),
         default="mha",
-        help="Which attention module to use: mha or mqa",
-    )
-    parser.add_argument(
-        "--resume",
-        type=str,
-        default=None,
-        help="Path to a checkpoint file to resume training from",
+        help="Which attention module to use: mha, gqa or mqa",
     )
     return parser.parse_args()
 
 
 if __name__ == "__main__":
     args = parse_args()
+    torch.manual_seed(config.SEED)
+
+    if torch.cuda.is_available():
+        torch.cuda.manual_seed_all(config.SEED)
 
     prepare_data()
 
@@ -46,34 +44,14 @@ if __name__ == "__main__":
     mlp_ratio = config.MLP_RATIO
     device = "cuda" if torch.cuda.is_available() else "cpu"
 
-    trainer = TransformerTrainer(
-        config.VOCAB_SIZE,
-        config.EMBED_DIM,
-        config.NUM_HEADS,
-        config.NUM_LAYERS,
-        attention_module,
-        mlp_ratio,
-        device,
-    )
-    print(f"TransformerTrainer initialized with {args.attention} attention on {device}.")
-
     train_dataset = TokenDataset(config.TRAIN_DATA_PATH, config.SEQ_LEN)
     train_dataloader = DataLoader(train_dataset, batch_size=config.BATCH_SIZE, shuffle=True, num_workers=4, pin_memory=True, persistent_workers=True)
 
     val_dataset = TokenDataset(config.VAL_DATA_PATH, config.SEQ_LEN)
     val_dataloader = DataLoader(val_dataset, batch_size=config.BATCH_SIZE, shuffle=False, num_workers=2, pin_memory=True, persistent_workers=True)
 
-    start_epoch = 0
-    wandb_run_id = None
-    if args.resume is not None:
-        start_epoch, last_train_loss, wandb_run_id = trainer.resume_from_checkpoint(args.resume)
-        start_epoch += 1
-        print(f"Resumed from {args.resume}, continuing at epoch {start_epoch+1}, last train loss was {last_train_loss:.4f}")
-
     wandb.init(
         project="gpt-clone-experiments",
-        id=wandb_run_id,
-        resume="must" if wandb_run_id is not None else None,
         config={
             "attention": args.attention,
             "vocab_size": config.VOCAB_SIZE,
@@ -89,10 +67,21 @@ if __name__ == "__main__":
         },
     )
 
+    trainer = TransformerTrainer(
+        config.VOCAB_SIZE,
+        config.EMBED_DIM,
+        config.NUM_HEADS,
+        config.NUM_LAYERS,
+        attention_module,
+        mlp_ratio,
+        device,
+    )
+    print(f"TransformerTrainer initialized with {args.attention} attention on {device}.")
+
     CHECKPOINT_DIRS = {
-    "mha": config.MHA_CHECKPOINT_DIR,
-    "mqa": config.MQA_CHECKPOINT_DIR,
-    "gqa": config.GQA_CHECKPOINT_DIR,
+        "mha": config.MHA_CHECKPOINT_DIR,
+        "mqa": config.MQA_CHECKPOINT_DIR,
+        "gqa": config.GQA_CHECKPOINT_DIR,
     }
 
     trainer.train(
@@ -100,6 +89,5 @@ if __name__ == "__main__":
         epochs=config.NUM_EPOCHS,
         save_every=config.SAVE_EVERY,
         val_dataloader=val_dataloader,
-        start_epoch=start_epoch,
         checkpoint_dir=CHECKPOINT_DIRS[args.attention],
     )

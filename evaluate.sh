@@ -16,7 +16,7 @@ module load anaconda/25.5.1
 
 # Activate environment
 eval "$(conda shell.bash hook)"
-conda activate gpt-clone   # replace with your actual environment name if different
+conda activate gpt-clone
 
 # Run test-set evaluation for all three attention variants
 python -u -m modules.training.evaluate

@@ -3,6 +3,7 @@ MQA_CHECKPOINT_DIR = "modules/checkpoints/mqa"
 GQA_CHECKPOINT_DIR = "modules/checkpoints/gqa"
 TRAIN_DATA_PATH = "modules/data/data_loader/train_ids.npy"
 VAL_DATA_PATH = "modules/data/data_loader/val_ids.npy"
+TEST_DATA_PATH = "modules/data/data_loader/test_ids.npy"
 TOKENIZER_PATH = "modules/data/tokenizer/wikitext_bpe_tokenizer.json"
 
 VOCAB_SIZE = 8000

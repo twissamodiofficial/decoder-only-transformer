@@ -16,7 +16,7 @@ def tokenize_split(tokenizer, split_name):
 
 
 def prepare_data():
-    if not os.path.exists(config.TRAIN_DATA_PATH) or not os.path.exists(config.VAL_DATA_PATH):
+    if not os.path.exists(config.TRAIN_DATA_PATH) or not os.path.exists(config.VAL_DATA_PATH) or not os.path.exists(config.TEST_DATA_PATH):
         data_tokenizer = TokenizeData()
 
         if os.path.exists(config.TOKENIZER_PATH):
@@ -33,6 +33,12 @@ def prepare_data():
             val_ids = tokenize_split(data_tokenizer, 'validation')
             np.save(config.VAL_DATA_PATH, val_ids)
             print(f"Saved {len(val_ids)} val tokens to {config.VAL_DATA_PATH}")
+
+        if not os.path.exists(config.TEST_DATA_PATH):
+            test_ids = tokenize_split(data_tokenizer, 'test')
+            np.save(config.TEST_DATA_PATH, test_ids)
+            print(f"Saved {len(test_ids)} test tokens to {config.TEST_DATA_PATH}")
+            
     else:
         print("Tokenized data already exists, skipping tokenization.")
 

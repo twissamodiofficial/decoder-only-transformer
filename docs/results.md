@@ -9,7 +9,10 @@ trained from scratch on WikiText-103.
 ![MHA training](./images/mha.png)
 
 ### GQA
-![GQA training](./images/gqa-head3.png)
+3 KV heads
+![GQA training 3 KV heads](./images/gqa-head3.png)
+2 KV heads
+![GQA training 2 KV heads](./images/gqa-head2.png)
 
 ### MQA
 ![MQA training](./images/mqa.png)
@@ -19,13 +22,13 @@ trained from scratch on WikiText-103.
 Final checkpoint (best val loss) for each model, evaluated on the held-out
 test set.
 
-![Test set evaluation](./images/evaluation_results.png)
+![Test set evaluation](./images/test_results.png)
 
 | Attention | Test loss |
 |---|---|
 | MHA | 2.376 |
-| GQA | 2.390 |
-| MQA | 2.409 |
+| GQA | 2.394 |
+| MQA | 2.403 |
 
 ## Inference benchmark
 
@@ -35,9 +38,9 @@ test set.
 
 | Attention | Tokens/sec | Peak memory (MB) |
 |---|---|---|
-| MHA | 142.389 | 69.575 |
-| GQA | 194.533 | 65.023 |
-| MQA | 201.891 | 60.989 |
+| MHA | 137.442 | 69.575 |
+| GQA | 194.012 | 63.167 |
+| MQA | 202.249 | 60.989 |
 
 ## Takeaway
 

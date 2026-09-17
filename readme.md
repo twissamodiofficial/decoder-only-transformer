@@ -9,10 +9,13 @@ Trained on WikiText-103, tokenized with a custom BPE tokenizer (8000 vocab).
 ## Setup
 
 - ~20-25M parameter model: `embed_dim=384`, `num_heads=6`, `num_layers=6`
-- Trained on GPU Cluster, single NVIDIA A40
+- Trained on GPU cluster, single NVIDIA A40
 - 20 epochs, AdamW with weight decay (excluding biases/norms), warmup +
   cosine LR schedule, gradient clipping
-- GQA uses `num_kv_heads=3` (2 query heads share each KV pair) tuned hyperparameter; 
+- GQA swept over `num_kv_heads=3` (2 query heads per KV pair) and
+  `num_kv_heads=2` (3 query heads per KV pair); `num_kv_heads=2` was kept
+  as the final config sinced its val loss was close to the 3-head version while
+  sharing KV across more query heads
 - MQA uses a single shared KV pair across all heads
 
 ## Results
@@ -21,27 +24,33 @@ Trained on WikiText-103, tokenized with a custom BPE tokenizer (8000 vocab).
 
 | Attention | Train loss | Val loss |
 |---|---|---|
-| MHA | ~2.30 | ~2.35 |
-| GQA | ~2.31 | ~2.38 |
+| MHA | ~2.29 | ~2.36 |
+| GQA (3 heads) | ~2.31 | ~2.38 |
+| GQA (2 heads) | ~2.32 | ~2.39 |
 | MQA | ~2.33 | ~2.40 |
 
 ### Test set (held-out, unbiased)
 
+Final checkpoint (best val loss) per attention type, evaluated on the
+held-out test set. GQA is the `num_kv_heads=2` config.
+
 | Attention | Test loss |
 |---|---|
 | MHA | 2.376 |
-| GQA | 2.390 |
-| MQA | 2.409 |
+| GQA (2 heads) | 2.394 |
+| MQA | 2.403 |
 
 ### Inference benchmark (100 tokens, batch size 1, A40)
 
 ![Inference speed and memory comparison](./docs/images/perf_comparison.png)
 
+GQA is the `num_kv_heads=2` config.
+
 | Attention | Tokens/sec | Peak memory (MB) |
 |---|---|---|
-| MHA | 142.389 | 69.575 |
-| GQA | 194.533 | 65.023 |
-| MQA | 201.891 | 60.989 |
+| MHA | 137.442 | 69.575 |
+| GQA (2 heads) | 194.012 | 63.167 |
+| MQA | 202.249 | 60.989 |
 
 Full training curves and test-set evaluation plots: [docs/results.md](./docs/results.md)
 
@@ -49,17 +58,19 @@ Full training curves and test-set evaluation plots: [docs/results.md](./docs/res
 
 MHA gives the best loss but is the slowest to generate from. MQA is the
 fastest and lightest but has the worst loss. GQA lands close to MQA on
-speed while staying close to MHA on quality — matches why GQA is the
+speed while staying close to MHA on quality matches why GQA is the
 common choice in real models (Llama 2/3, Mistral) rather than either
-extreme.
+extreme. Within GQA, dropping from 3 to 2 KV heads cost almost nothing
+in loss while closing more of the speed/memory gap to MQA, which is why
+it's the config kept here.
 
 ## What this project covered
 
 - RoPE positional embeddings, implemented and verified from the formulas
 - KV caching for autoregressive decoding, with correct position offsets
 - MHA, GQA, and MQA attention, all sharing the same RoPE/cache logic
-- Training loop: checkpointing (resumable), LR warmup + cosine decay,
-  weight decay split (no decay on biases/norms), gradient clipping
+- Training loop: checkpointing, LR warmup + cosine decay, weight decay
+  split (no decay on biases/norms), gradient clipping
 - Proper weight initialization for deep residual networks (GPT-2 style)
   — fixed an issue where the model started at a much higher loss than
   expected due to default PyTorch init not accounting for residual depth

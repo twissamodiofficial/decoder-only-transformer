@@ -8,7 +8,7 @@ Trained on WikiText-103, tokenized with a custom BPE tokenizer (8000 vocab).
 
 ## Setup
 
-- ~20-25M parameter model: `embed_dim=384`, `num_heads=6`, `num_layers=6`
+- ~12-14M parameter model: `embed_dim=384`, `num_heads=6`, `num_layers=6`
 - Trained on GPU cluster, single NVIDIA A40
 - 20 epochs, AdamW with weight decay (excluding biases/norms), warmup +
   cosine LR schedule, gradient clipping
